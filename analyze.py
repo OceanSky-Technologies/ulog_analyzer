@@ -16,6 +16,7 @@ from plotly.graph_objects import Figure
 from CustomFormatter import CustomFormatter
 from modules.battery_status import read_battery_data
 from modules.esc_status import read_esc_data
+from modules.system_power import read_system_power_data
 from modules.timestamp_helper import get_first_gps_timestamp
 
 tmp_dirname = None
@@ -137,6 +138,9 @@ def main():
 
         # battery/power module
         add_figs_to_dash(read_battery_data(tmp_dirname=tmp_dirname, ulog_filename=ulog_filename), app.layout)
+
+        # system power
+        add_figs_to_dash(read_system_power_data(tmp_dirname=tmp_dirname, ulog_filename=ulog_filename), app.layout)
 
         app.run(debug=True)
 

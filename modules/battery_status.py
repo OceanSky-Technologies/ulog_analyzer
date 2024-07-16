@@ -4,6 +4,7 @@ from plotly.subplots import make_subplots
 import plotly.graph_objects as go
 
 from modules.csv_reader import get_csv_file, get_multi_id_num
+from modules.figure_formatter import format_figure
 from modules.timestamp_helper import fix_timestamps
 
 
@@ -11,7 +12,7 @@ def read_battery_data(tmp_dirname: str, ulog_filename: str):
     message_name = "battery_status"
 
     battery_count = get_multi_id_num(tmp_dirname, message_name)
-    logging.info(f"Found {battery_count} batteries/power modules")
+    logging.info(f"Found {battery_count} batteries/power module data sets")
 
     figs = []
 
@@ -38,7 +39,7 @@ def read_battery_data(tmp_dirname: str, ulog_filename: str):
         fig = make_subplots(
             rows=rows,
             cols=1,
-            vertical_spacing=0.015,
+            vertical_spacing=0.02,
             shared_xaxes=True,
             subplot_titles=subplot_titles,
         )
@@ -118,7 +119,7 @@ def read_battery_data(tmp_dirname: str, ulog_filename: str):
             row=4,
             trace=go.Scatter(
                 x=df["timestamp"],
-                y=df["remaining"],
+                y=df["remaining"] * 100,
                 mode="lines",
                 name="Remaining",
             ),
@@ -130,7 +131,7 @@ def read_battery_data(tmp_dirname: str, ulog_filename: str):
             row=4,
             trace=go.Scatter(
                 x=df["timestamp"],
-                y=df["remaining"] * df["scale"],
+                y=df["remaining"] * df["scale"] * 100,
                 mode="lines",
                 name="Remaining (incl. power scaling factor)",
             ),
@@ -173,15 +174,7 @@ def read_battery_data(tmp_dirname: str, ulog_filename: str):
                 ),
             )
 
-        for i, yaxis in enumerate(fig.select_yaxes(), 1):
-            legend_name = f"legend{i}"
-            yaxis.exponentformat = "none"
-            yaxis.separatethousands = True
-            fig.update_layout(
-                {legend_name: dict(y=yaxis.domain[1], yanchor="top")},
-                showlegend=True,
-            )
-            fig.update_traces(row=i, legend=legend_name)
+        format_figure(fig)
 
         # show x axis labels in every subplot
         fig.update_layout(

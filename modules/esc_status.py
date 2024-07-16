@@ -4,6 +4,7 @@ from plotly.subplots import make_subplots
 import plotly.graph_objects as go
 
 from modules.csv_reader import get_csv_file, get_multi_id_num
+from modules.figure_formatter import format_figure
 from modules.timestamp_helper import fix_timestamps
 
 
@@ -11,7 +12,7 @@ def read_esc_data(tmp_dirname: str, ulog_filename: str):
     message_name = "esc_status"
 
     esc_count = get_multi_id_num(tmp_dirname, message_name)
-    logging.info(f"Found {esc_count} ESCs")
+    logging.info(f"Found {esc_count} ESC data sets")
 
     figs = []
 
@@ -79,6 +80,17 @@ def read_esc_data(tmp_dirname: str, ulog_filename: str):
                     name=f"Motor {m}",
                 ),
             )
+
+        fig.add_trace(
+            col=1,
+            row=2,
+            trace=go.Scatter(
+                x=df["timestamp"],
+                y=sum([df[f"esc[{m}].esc_rpm"] for m in range(motor_count)]),
+                mode="lines",
+                name=f"Total motor RPM",
+            ),
+        )
 
         for m in range(motor_count):
             # ESC reports negative temperature when it's not armed
@@ -155,15 +167,7 @@ def read_esc_data(tmp_dirname: str, ulog_filename: str):
                 ),
             )
 
-        for i, yaxis in enumerate(fig.select_yaxes(), 1):
-            legend_name = f"legend{i}"
-            yaxis.exponentformat = "none"
-            yaxis.separatethousands = True
-            fig.update_layout(
-                {legend_name: dict(y=yaxis.domain[1], yanchor="top")},
-                showlegend=True,
-            )
-            fig.update_traces(row=i, legend=legend_name)
+        format_figure(fig)
 
         # show x axis labels in every subplot
         fig.update_layout(
