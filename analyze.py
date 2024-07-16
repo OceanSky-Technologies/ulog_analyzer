@@ -5,236 +5,70 @@ Visualize ulog files.
 """
 
 import argparse
-from datetime import UTC, datetime
 import os
-import time
-import numpy as np
-import pandas as pd
-import plotly
-import plotly.graph_objects as go
 import subprocess
 import tempfile
 import logging
-import pyulog
-from plotly.subplots import make_subplots
+from pyulog import ULog
+from dash import Dash, html, dcc, Output, Input, callback
+from plotly.graph_objects import Figure
 
 from CustomFormatter import CustomFormatter
+from modules.battery_status import read_battery_data
+from modules.esc_status import read_esc_data
+from modules.timestamp_helper import get_first_gps_timestamp
 
 tmp_dirname = None
 ulog_filename = None
 start_timestamp_us = 0
 logging_start_time_us = 0
 
+subplot_height = 600
 
-def get_csv_file(message_name: str, multi_id: 0):
-    output_file_prefix = ulog_filename
-    # strip '.ulg'
-    if output_file_prefix.lower().endswith(".ulg"):
-        output_file_prefix = output_file_prefix[:-4]
-
-    base_name = os.path.basename(output_file_prefix)
-    output_file_prefix = os.path.join(tmp_dirname, base_name)
-
-    fmt = "{0}_{1}_{2}.csv"
-    return fmt.format(output_file_prefix, message_name, str(multi_id))
+tab_figures = {}
 
 
-def timestamp_to_datetime(timestamp_us: int):
-    return datetime.fromtimestamp(timestamp_us / 1000000, UTC).strftime("%Y-%m-%d %H:%M:%S")
+def sanitize_fig_title(title: str):
+    return title.text.lower().replace(" ", "-")
 
 
-def get_first_gps_timestamp(ulog: pyulog.ULog):
-    """This function tries to identify the first GPS timestamp."""
-    global logging_start_time_us, start_timestamp_us
+def add_figs_to_dash(figs: list[Figure], main_layout: html.Div):
+    # unify subplot sizes
+    for fig in figs:
+        fig.update_layout(height=len(fig._get_subplot_rows_columns()[0]) * subplot_height)
 
-    gps_data = ulog.get_dataset("vehicle_gps_position")
-    indices = np.nonzero(gps_data.data["time_utc_usec"])
-    if len(indices[0]) > 0:
-        logging_start_time_us = gps_data.data["time_utc_usec"][indices[0][0]]
-        start_timestamp_us = gps_data.data["timestamp"][indices[0][0]]
-        logging.info(f"First GPS timestamp found: {timestamp_to_datetime(logging_start_time_us)}")
+    # make sure there is a tabs container
+    tabs = [child for child in main_layout.children if isinstance(child, dcc.Tabs)]
+    if len(tabs) != 1:
+        raise Exception("There must be exactly one tab in the main div!")
+    main_div_tabs = tabs[0].children
+
+    # add separate tab for each figure
+    for fig in figs:
+        main_div_tabs.append(
+            dcc.Tab(
+                label=fig.layout.title.text,
+                value=sanitize_fig_title(fig.layout.title),
+            )
+        )
+
+        # save this figure in the tab_figures dictionary: {sanitized_fig_title: fig}
+        tab_figures[sanitize_fig_title(fig.layout.title)] = fig
+
+        # remove figure title because the tab name already contains it
+        fig.layout.title.text = ""
+
+    # by default select the first tab
+    if len(tabs[0].children) > 0:
+        tabs[0].value = tabs[0].children[0].value
+
+
+@callback(Output("tabs-content-graph", "children"), Input("tabs-graph", "value"))
+def render_content(tab):
+    if tab in tab_figures.keys():
+        return html.Div([dcc.Graph(figure=tab_figures[tab])])
     else:
-        logging.warning("No GPS timestamp found!")
-
-
-def fix_timestamps(df):
-    """This function adjusts timestamps so they are in the local timezone."""
-
-    # used to transform everything into local timezone
-    utc_offset_us = int(time.timezone * 1000000)
-
-    # calculate difference to first gps timestamp
-    timestamp_gps_diff_microseconds = int(df["timestamp"][0] - start_timestamp_us)
-
-    df["timestamp"] = pd.to_datetime(
-        (df["timestamp"] - timestamp_gps_diff_microseconds + logging_start_time_us - utc_offset_us),
-        unit="us",
-    )
-
-
-def read_esc_data():
-    esc_num = 0
-    message_name = "esc_status"
-
-    # read in csvs
-    df = pd.read_csv(get_csv_file(message_name, esc_num))
-    fix_timestamps(df)
-
-    motor_count = 4
-
-    # esc[0].esc_errorcount,
-    # esc[0].esc_rpm,
-    # esc[0].esc_voltage,
-    # esc[0].esc_current,
-    # esc[0].esc_temperature,
-    # esc[0].failures,
-    # esc[0].esc_address,
-    # esc[0].esc_cmdcount,
-    # esc[0].esc_state,
-    # esc[0].actuator_function,
-    # esc[0].esc_power,
-
-    fig = make_subplots(
-        rows=8,
-        cols=1,
-        vertical_spacing=0.02,
-        shared_xaxes=True,
-        subplot_titles=[
-            "ESC errorcount",
-            "ESC RPM",
-            "ESC temperature",
-            "ESC voltage",
-            "ESC current",
-            "ESC failures",
-            "ESC state",
-            "ESC power",
-        ],
-    )
-
-    for m in range(motor_count):
-        fig.add_trace(
-            col=1,
-            row=1,
-            trace=go.Scatter(
-                x=df["timestamp"],
-                y=df[f"esc[{m}].esc_errorcount"],
-                mode="lines",
-                name=f"Motor {m}",
-            ),
-        )
-
-    for m in range(motor_count):
-        fig.add_trace(
-            col=1,
-            row=2,
-            trace=go.Scatter(
-                x=df["timestamp"],
-                y=df[f"esc[{m}].esc_rpm"],
-                mode="lines",
-                name=f"Motor {m}",
-            ),
-        )
-
-    for m in range(motor_count):
-        # ESC reports negative temperature when it's not armed
-        df[f"esc[{m}].esc_temperature"] = df[f"esc[{m}].esc_temperature"].abs()
-
-        fig.add_trace(
-            col=1,
-            row=3,
-            trace=go.Scatter(
-                x=df["timestamp"],
-                y=df[f"esc[{m}].esc_temperature"],
-                mode="lines",
-                name=f"Motor {m}",
-            ),
-        )
-
-    for m in range(motor_count):
-        fig.add_trace(
-            col=1,
-            row=4,
-            trace=go.Scatter(
-                x=df["timestamp"],
-                y=df[f"esc[{m}].esc_voltage"],
-                mode="lines",
-                name=f"Motor {m}",
-            ),
-        )
-
-    for m in range(motor_count):
-        fig.add_trace(
-            col=1,
-            row=5,
-            trace=go.Scatter(
-                x=df["timestamp"],
-                y=df[f"esc[{m}].esc_current"],
-                mode="lines",
-                name=f"Motor {m}",
-            ),
-        )
-
-    for m in range(motor_count):
-        fig.add_trace(
-            col=1,
-            row=6,
-            trace=go.Scatter(
-                x=df["timestamp"],
-                y=df[f"esc[{m}].failures"],
-                mode="lines",
-                name=f"Motor {m}",
-            ),
-        )
-
-    for m in range(motor_count):
-        fig.add_trace(
-            col=1,
-            row=7,
-            trace=go.Scatter(
-                x=df["timestamp"],
-                y=df[f"esc[{m}].esc_state"],
-                mode="lines",
-                name=f"Motor {m}",
-            ),
-        )
-
-    for m in range(motor_count):
-        fig.add_trace(
-            col=1,
-            row=8,
-            trace=go.Scatter(
-                x=df["timestamp"],
-                y=df[f"esc[{m}].esc_power"],
-                mode="lines",
-                name=f"Motor {m}",
-            ),
-        )
-
-    fig.update_layout(title="ESC", height=4000)
-
-    for i, yaxis in enumerate(fig.select_yaxes(), 1):
-        legend_name = f"legend{i}"
-        yaxis.exponentformat = "none"
-        yaxis.separatethousands = True
-        fig.update_layout(
-            {legend_name: dict(y=yaxis.domain[1], yanchor="top")},
-            showlegend=True,
-        )
-        fig.update_traces(row=i, legend=legend_name)
-
-    # show x axis labels in every subplot
-    fig.update_layout(
-        xaxis_showticklabels=True,
-        xaxis2_showticklabels=True,
-        xaxis3_showticklabels=True,
-        xaxis4_showticklabels=True,
-        xaxis5_showticklabels=True,
-        xaxis6_showticklabels=True,
-        xaxis7_showticklabels=True,
-        xaxis8_showticklabels=True,
-    )
-
-    return fig
+        logging.error(f"Tab name {tab} not found in tab_figures!")
 
 
 def main():
@@ -250,6 +84,7 @@ def main():
 
     parser = argparse.ArgumentParser(description="Plot ulog data")
     parser.add_argument("filename", metavar="file.ulg", help="ULog input file")
+    parser.add_argument("--keep-csv", "-k", action="store_true", help="Don't delete the temporary csv files.")
     args = parser.parse_args()
 
     if not os.path.exists(args.filename):
@@ -258,12 +93,11 @@ def main():
     else:
         ulog_filename = args.filename
 
-    ulog = pyulog.ULog(args.filename, None, True)
+    ulog = ULog(args.filename, None, True)
     get_first_gps_timestamp(ulog)
 
-    delete_tmp_file_after_usage = True
-    with tempfile.TemporaryDirectory(delete=delete_tmp_file_after_usage) as tmp_dirname:
-        if not delete_tmp_file_after_usage:
+    with tempfile.TemporaryDirectory(delete=not args.keep_csv) as tmp_dirname:
+        if args.keep_csv:
             logging.info(f"CSV files: {tmp_dirname}")
 
         # convert ulog file to csvs
@@ -282,9 +116,31 @@ def main():
             print(std_out)
             exit(1)
 
-        esc_fig = read_esc_data()
-        esc_fig.show()
+        external_stylesheets = ["style.css"]
+        app = Dash(name="ulog analyzer", external_stylesheets=external_stylesheets)
+
+        app.layout = html.Div(
+            id="main_div",
+            children=[
+                html.H1("ulog analyzer"),
+                dcc.Tabs(
+                    id="tabs-graph",
+                    value="tabs-graph",
+                    children=[],
+                ),
+                html.Div(id="tabs-content-graph"),
+            ],
+        )
+
+        # ESC
+        add_figs_to_dash(read_esc_data(tmp_dirname=tmp_dirname, ulog_filename=ulog_filename), app.layout)
+
+        # battery/power module
+        add_figs_to_dash(read_battery_data(tmp_dirname=tmp_dirname, ulog_filename=ulog_filename), app.layout)
+
+        app.run(debug=True)
 
 
 if __name__ == "__main__":
+    print("now")
     main()

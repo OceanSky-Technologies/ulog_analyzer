@@ -30,6 +30,8 @@ Run the analyzer script with
 python3 .\analyze.py PATH_TO_ULG_FILE
 ```
 
+Then open the URL `http://127.0.0.1:8050/` in a browser.
+
 If you require more python packages inside this venv, you can add them using `pip3 install ...` and save them to the venv using
 
 ```bash
