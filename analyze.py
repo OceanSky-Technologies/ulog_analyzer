@@ -14,6 +14,7 @@ from dash import Dash, html, dcc, Output, Input, callback
 from plotly.graph_objects import Figure
 
 from CustomFormatter import CustomFormatter
+from modules.actuator_motors import read_actuator_motors_data
 from modules.battery_status import read_battery_data
 from modules.esc_status import read_esc_data
 from modules.system_power import read_system_power_data
@@ -142,9 +143,11 @@ def main():
         # system power
         add_figs_to_dash(read_system_power_data(tmp_dirname=tmp_dirname, ulog_filename=ulog_filename), app.layout)
 
+        # system power
+        add_figs_to_dash(read_actuator_motors_data(tmp_dirname=tmp_dirname, ulog_filename=ulog_filename), app.layout)
+
         app.run(debug=True)
 
 
 if __name__ == "__main__":
-    print("now")
     main()
