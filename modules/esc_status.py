@@ -57,27 +57,27 @@ def read_esc_data(tmp_dirname: str, ulog_filename: str):
             subplot_titles=subplot_titles,
         )
 
-        for m in range(motor_count):
+        for x in range(motor_count):
             fig.add_trace(
                 col=1,
                 row=1,
                 trace=go.Scatter(
                     x=df["timestamp"],
-                    y=df[f"esc[{m}].esc_errorcount"],
+                    y=df[f"esc[{x}].esc_errorcount"],
                     mode="lines",
-                    name=f"Motor {m}",
+                    name=f"Motor {x+1}",
                 ),
             )
 
-        for m in range(motor_count):
+        for x in range(motor_count):
             fig.add_trace(
                 col=1,
                 row=2,
                 trace=go.Scatter(
                     x=df["timestamp"],
-                    y=df[f"esc[{m}].esc_rpm"],
+                    y=df[f"esc[{x}].esc_rpm"],
                     mode="lines",
-                    name=f"Motor {m}",
+                    name=f"Motor {x+1}",
                 ),
             )
 
@@ -86,84 +86,85 @@ def read_esc_data(tmp_dirname: str, ulog_filename: str):
             row=2,
             trace=go.Scatter(
                 x=df["timestamp"],
-                y=sum([df[f"esc[{m}].esc_rpm"] for m in range(motor_count)]),
+                y=sum([df[f"esc[{x}].esc_rpm"] for x in range(motor_count)]),
                 mode="lines",
                 name=f"Total motor RPM",
+                visible="legendonly",
             ),
         )
 
-        for m in range(motor_count):
+        for x in range(motor_count):
             # ESC reports negative temperature when it's not armed
-            df[f"esc[{m}].esc_temperature"] = df[f"esc[{m}].esc_temperature"].abs()
+            df[f"esc[{x}].esc_temperature"] = df[f"esc[{x}].esc_temperature"].abs()
 
             fig.add_trace(
                 col=1,
                 row=3,
                 trace=go.Scatter(
                     x=df["timestamp"],
-                    y=df[f"esc[{m}].esc_temperature"],
+                    y=df[f"esc[{x}].esc_temperature"],
                     mode="lines",
-                    name=f"Motor {m}",
+                    name=f"Motor {x+1}",
                 ),
             )
 
-        for m in range(motor_count):
+        for x in range(motor_count):
             fig.add_trace(
                 col=1,
                 row=4,
                 trace=go.Scatter(
                     x=df["timestamp"],
-                    y=df[f"esc[{m}].esc_voltage"],
+                    y=df[f"esc[{x}].esc_voltage"],
                     mode="lines",
-                    name=f"Motor {m}",
+                    name=f"Motor {x+1}",
                 ),
             )
 
-        for m in range(motor_count):
+        for x in range(motor_count):
             fig.add_trace(
                 col=1,
                 row=5,
                 trace=go.Scatter(
                     x=df["timestamp"],
-                    y=df[f"esc[{m}].esc_current"],
+                    y=df[f"esc[{x}].esc_current"],
                     mode="lines",
-                    name=f"Motor {m}",
+                    name=f"Motor {x+1}",
                 ),
             )
 
-        for m in range(motor_count):
+        for x in range(motor_count):
             fig.add_trace(
                 col=1,
                 row=6,
                 trace=go.Scatter(
                     x=df["timestamp"],
-                    y=df[f"esc[{m}].failures"],
+                    y=df[f"esc[{x}].failures"],
                     mode="lines",
-                    name=f"Motor {m}",
+                    name=f"Motor {x+1}",
                 ),
             )
 
-        for m in range(motor_count):
+        for x in range(motor_count):
             fig.add_trace(
                 col=1,
                 row=7,
                 trace=go.Scatter(
                     x=df["timestamp"],
-                    y=df[f"esc[{m}].esc_state"],
+                    y=df[f"esc[{x}].esc_state"],
                     mode="lines",
-                    name=f"Motor {m}",
+                    name=f"Motor {x+1}",
                 ),
             )
 
-        for m in range(motor_count):
+        for x in range(motor_count):
             fig.add_trace(
                 col=1,
                 row=8,
                 trace=go.Scatter(
                     x=df["timestamp"],
-                    y=df[f"esc[{m}].esc_power"],
+                    y=df[f"esc[{x}].esc_power"],
                     mode="lines",
-                    name=f"Motor {m}",
+                    name=f"Motor {x+1}",
                 ),
             )
 

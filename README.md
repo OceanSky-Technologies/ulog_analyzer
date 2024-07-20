@@ -12,7 +12,7 @@ Set up a virtual environment and enter it:
 python3 -m venv ./.venv
 
 # Linux
-source ./venv/bin/.activate
+source ./.venv/bin/.activate
 
 # Windows
 .\.venv\Scripts\activate
