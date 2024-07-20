@@ -38,15 +38,15 @@ def read_actuator_motors_data(tmp_dirname: str, ulog_filename: str):
             subplot_titles=subplot_titles,
         )
 
-        for m in range(actuator_control_count):
+        for x in range(actuator_control_count):
             fig.add_trace(
                 col=1,
                 row=1,
                 trace=go.Scatter(
                     x=df["timestamp"],
-                    y=df[f"control[{m}]"] * 100,
+                    y=df[f"control[{x}]"] * 100,
                     mode="lines",
-                    name=f"Motor {m}",
+                    name=f"Motor {x+1}",
                 ),
             )
 

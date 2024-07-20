@@ -162,15 +162,15 @@ def read_battery_data(tmp_dirname: str, ulog_filename: str):
         )
 
         # cell voltages are not reported ...
-        for m in range(cell_count):
+        for x in range(cell_count):
             fig.add_trace(
                 col=1,
                 row=7,
                 trace=go.Scatter(
                     x=df["timestamp"],
-                    y=df[f"voltage_cell_v[{m}]"],
+                    y=df[f"voltage_cell_v[{x}]"],
                     mode="lines",
-                    name=f"Cell {m}",
+                    name=f"Cell {x+1}",
                 ),
             )
 

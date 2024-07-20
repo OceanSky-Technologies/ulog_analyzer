@@ -58,15 +58,15 @@ def read_system_power_data(tmp_dirname: str, ulog_filename: str):
         )
 
         # Voltage 3.3V
-        for m in range(count_3v3_sensors):
+        for x in range(count_3v3_sensors):
             fig.add_trace(
                 col=1,
                 row=2,
                 trace=go.Scatter(
                     x=df["timestamp"],
-                    y=df[f"sensors3v3[{m}]"],
+                    y=df[f"sensors3v3[{x}]"],
                     mode="lines",
-                    name=f"Voltage 3.3V [{m}]",
+                    name=f"Voltage 3.3V [{x+1}]",
                 ),
             )
 

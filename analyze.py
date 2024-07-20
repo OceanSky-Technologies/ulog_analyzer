@@ -92,6 +92,9 @@ def main():
     if not os.path.exists(args.filename):
         print(f'File "{args.filename}" doesn\'t exist.')
         exit(1)
+    elif not str(args.filename).endswith(".ulg"):
+        print(f'File "{args.filename}" must be an *.ulg file.')
+        exit(1)
     else:
         ulog_filename = args.filename
 
