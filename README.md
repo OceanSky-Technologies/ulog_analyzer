@@ -12,7 +12,7 @@ Set up a virtual environment and enter it:
 python3 -m venv ./.venv
 
 # Linux
-source ./venv/bin/.activate
+source ./.venv/bin/activate
 
 # Windows
 .\.venv\Scripts\activate
@@ -27,7 +27,7 @@ python3 -m pip install -r requirements.txt
 Run the analyzer script with
 
 ```bash
-python3 .\analyze.py PATH_TO_ULG_FILE
+python3 ./analyze.py PATH_TO_ULG_FILE
 ```
 
 Then open the URL `http://127.0.0.1:8050/` in a browser.
