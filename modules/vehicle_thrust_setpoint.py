@@ -8,8 +8,8 @@ from modules.figure_formatter import format_figure
 from modules.timestamp_helper import fix_timestamps
 
 
-def read_actuator_motors_data(tmp_dirname: str, ulog_filename: str):
-    message_name = "actuator_motors"
+def read_vehicle_thrust_setpoint_data(tmp_dirname: str, ulog_filename: str):
+    message_name = "vehicle_thrust_setpoint"
 
     dataset_count = get_multi_id_num(tmp_dirname, message_name)
     logging.info(f"Found {dataset_count} {message_name} data sets")
@@ -23,11 +23,9 @@ def read_actuator_motors_data(tmp_dirname: str, ulog_filename: str):
         df = pd.read_csv(get_csv_file(tmp_dirname, ulog_filename, message_name, dataset_num))
         fix_timestamps(df, timestamp_field)
 
-        actuator_control_count = 12
-
         rows = 1
         subplot_titles = [
-            "Actuator output",
+            "Thrust",
         ]
         if len(subplot_titles) != rows:
             raise Exception("Number of subplots is wrong")
@@ -35,20 +33,44 @@ def read_actuator_motors_data(tmp_dirname: str, ulog_filename: str):
         fig = make_subplots(
             rows=rows,
             cols=1,
-            vertical_spacing=0.02,
+            vertical_spacing=0.075,
             shared_xaxes=True,
             subplot_titles=subplot_titles,
         )
 
-        for x in range(actuator_control_count):
+        # xyz
+        fig.add_trace(
+            col=1,
+            row=1,
+            trace=go.Scatter(
+                x=df[timestamp_field],
+                y=abs(df[f"xyz[0]"] * 100),
+                mode="lines",
+                name=f"Thrust (forward)",
+            ),
+        )
+
+        if "xyz[1]" in df.keys():
             fig.add_trace(
                 col=1,
                 row=1,
                 trace=go.Scatter(
                     x=df[timestamp_field],
-                    y=df[f"control[{x}]"] * 100,
+                    y=abs(df[f"xyz[1]"] * 100),
                     mode="lines",
-                    name=f"Motor {x+1}",
+                    name=f"Thrust (right)",
+                ),
+            )
+
+        if "xyz[2]" in df.keys():
+            fig.add_trace(
+                col=1,
+                row=1,
+                trace=go.Scatter(
+                    x=df[timestamp_field],
+                    y=abs(df[f"xyz[2]"] * 100),
+                    mode="lines",
+                    name=f"Thrust (up)",
                 ),
             )
 
@@ -56,10 +78,10 @@ def read_actuator_motors_data(tmp_dirname: str, ulog_filename: str):
 
         # show x axis labels in every subplot
         fig.update_layout(
-            title_text=f"Actuator/motor control {dataset_num}",
+            title_text=f"Vehicle thrust setpoint {dataset_num}",
             autosize=True,
             xaxis_showticklabels=True,
-            yaxis={"ticksuffix": "%"},
+            yaxis={"ticksuffix": " %"},
         )
 
         figs.append(fig)

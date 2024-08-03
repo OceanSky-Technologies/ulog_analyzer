@@ -25,16 +25,16 @@ def get_first_gps_timestamp(ulog: ULog):
         logging.warning("No GPS timestamp found!")
 
 
-def fix_timestamps(df):
+def fix_timestamps(df, timestamp_field):
     """This function adjusts timestamps so they are in the local timezone."""
 
     # used to transform everything into local timezone
     utc_offset_us = int(time.timezone * 1000000)
 
     # calculate difference to first gps timestamp
-    timestamp_gps_diff_microseconds = int(df["timestamp"][0] - start_timestamp_us)
+    timestamp_gps_diff_microseconds = int(df[timestamp_field][0] - start_timestamp_us)
 
-    df["timestamp"] = pd.to_datetime(
-        (df["timestamp"] - timestamp_gps_diff_microseconds + logging_start_time_us - utc_offset_us),
+    df[timestamp_field] = pd.to_datetime(
+        (df[timestamp_field] - timestamp_gps_diff_microseconds + logging_start_time_us - utc_offset_us),
         unit="us",
     )

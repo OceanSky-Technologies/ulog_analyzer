@@ -8,8 +8,8 @@ from modules.figure_formatter import format_figure
 from modules.timestamp_helper import fix_timestamps
 
 
-def read_system_power_data(tmp_dirname: str, ulog_filename: str):
-    message_name = "system_power"
+def read_airspeed_validated_data(tmp_dirname: str, ulog_filename: str):
+    message_name = "airspeed_validated"
 
     dataset_count = get_multi_id_num(tmp_dirname, message_name)
     logging.info(f"Found {dataset_count} {message_name} data sets")
@@ -23,18 +23,12 @@ def read_system_power_data(tmp_dirname: str, ulog_filename: str):
         df = pd.read_csv(get_csv_file(tmp_dirname, ulog_filename, message_name, dataset_num))
         fix_timestamps(df, timestamp_field)
 
-        count_3v3_sensors = 4
-
-        rows = 8
+        rows = 4
         subplot_titles = [
-            "Voltage 5V",
-            "Voltage 3.3V",
-            "Sensors 3.3V valid",
-            "Brick valid",
-            "Servo valid",
-            "5V overcurrent",
-            "5V to companion valid",
-            "CAN1/GPS1 5V valid",
+            "Airspeed",
+            "Ground minus wind",
+            "Airspeed sensor measurement valid",
+            "Selected airspeed index",
         ]
         if len(subplot_titles) != rows:
             raise Exception("Number of subplots is wrong")
@@ -47,111 +41,84 @@ def read_system_power_data(tmp_dirname: str, ulog_filename: str):
             subplot_titles=subplot_titles,
         )
 
-        # Voltage 5V
+        # Airspeed
         fig.add_trace(
             col=1,
             row=1,
             trace=go.Scatter(
                 x=df[timestamp_field],
-                y=df["voltage5v_v"],
+                y=df[f"indicated_airspeed_m_s"],
                 mode="lines",
-                name="Voltage 5V",
+                name=f"Indicated airspeed",
             ),
         )
 
-        # Voltage 3.3V
-        for x in range(count_3v3_sensors):
-            fig.add_trace(
-                col=1,
-                row=2,
-                trace=go.Scatter(
-                    x=df[timestamp_field],
-                    y=df[f"sensors3v3[{x}]"],
-                    mode="lines",
-                    name=f"Voltage 3.3V [{x+1}]",
-                ),
-            )
+        fig.add_trace(
+            col=1,
+            row=1,
+            trace=go.Scatter(
+                x=df[timestamp_field],
+                y=df[f"calibrated_airspeed_m_s"],
+                mode="lines",
+                name=f"Calibrated airspeed",
+            ),
+        )
 
-        # Sensors 3.3V valid
+        fig.add_trace(
+            col=1,
+            row=1,
+            trace=go.Scatter(
+                x=df[timestamp_field],
+                y=df[f"true_airspeed_m_s"],
+                mode="lines",
+                name=f"True airspeed",
+            ),
+        )
+
+        # Ground minus wind
+        fig.add_trace(
+            col=1,
+            row=2,
+            trace=go.Scatter(
+                x=df[timestamp_field],
+                y=df[f"calibrated_ground_minus_wind_m_s"],
+                mode="lines",
+                name=f"Calibrated ground minus wind",
+            ),
+        )
+
+        fig.add_trace(
+            col=1,
+            row=2,
+            trace=go.Scatter(
+                x=df[timestamp_field],
+                y=df[f"true_ground_minus_wind_m_s"],
+                mode="lines",
+                name=f"True ground minus wind",
+            ),
+        )
+
+        # airspeed sensor measurement valid
         fig.add_trace(
             col=1,
             row=3,
             trace=go.Scatter(
                 x=df[timestamp_field],
-                y=df["sensors3v3_valid"],
+                y=df[f"airspeed_sensor_measurement_valid"],
                 mode="lines",
-                name="Sensors 3.3V valid",
+                name=f"Airspeed sensor measurement valid",
             ),
         )
 
-        # Brick valid
+        # Selected airspeed sensor index
         fig.add_trace(
             col=1,
             row=4,
             trace=go.Scatter(
                 x=df[timestamp_field],
-                y=df["brick_valid"],
+                y=df[f"selected_airspeed_index"],
                 mode="lines",
-                name="Brick valid",
-            ),
-        )
-
-        # Servo valid
-        fig.add_trace(
-            col=1,
-            row=5,
-            trace=go.Scatter(
-                x=df[timestamp_field],
-                y=df["servo_valid"],
-                mode="lines",
-                name="Servo valid",
-            ),
-        )
-
-        # 5V overcurrent
-        fig.add_trace(
-            col=1,
-            row=6,
-            trace=go.Scatter(
-                x=df[timestamp_field],
-                y=df["periph_5v_oc"],
-                mode="lines",
-                name="Peripheral 5V overcurrent",
-            ),
-        )
-
-        fig.add_trace(
-            col=1,
-            row=6,
-            trace=go.Scatter(
-                x=df[timestamp_field],
-                y=df["hipower_5v_oc"],
-                mode="lines",
-                name="High power peripheral 5V overcurrent",
-            ),
-        )
-
-        # 5V to companion valid
-        fig.add_trace(
-            col=1,
-            row=7,
-            trace=go.Scatter(
-                x=df[timestamp_field],
-                y=df["comp_5v_valid"],
-                mode="lines",
-                name="5V to companion valid",
-            ),
-        )
-
-        # CAN1/GPS1 5V valid
-        fig.add_trace(
-            col=1,
-            row=8,
-            trace=go.Scatter(
-                x=df[timestamp_field],
-                y=df["can1_gps1_5v_valid"],
-                mode="lines",
-                name="CAN1/GPS1 5V valid",
+                name=f"Selected airspeed sensor index",
             ),
         )
 
@@ -159,18 +126,14 @@ def read_system_power_data(tmp_dirname: str, ulog_filename: str):
 
         # show x axis labels in every subplot
         fig.update_layout(
-            title_text=f"System power {dataset_num}",
+            title_text=f"Airspeed (validated) {dataset_num}",
             autosize=True,
             xaxis_showticklabels=True,
             xaxis2_showticklabels=True,
             xaxis3_showticklabels=True,
             xaxis4_showticklabels=True,
-            xaxis5_showticklabels=True,
-            xaxis6_showticklabels=True,
-            xaxis7_showticklabels=True,
-            xaxis8_showticklabels=True,
-            yaxis={"ticksuffix": "V"},
-            yaxis2={"ticksuffix": "V"},
+            yaxis={"ticksuffix": " m/s"},
+            yaxis2={"ticksuffix": " m/s"},
         )
 
         figs.append(fig)

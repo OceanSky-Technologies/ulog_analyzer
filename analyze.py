@@ -15,10 +15,18 @@ from plotly.graph_objects import Figure
 
 from CustomFormatter import CustomFormatter
 from modules.actuator_motors import read_actuator_motors_data
+from modules.airspeed import read_airspeed_data
+from modules.airspeed_validated import read_airspeed_validated_data
 from modules.battery_status import read_battery_data
 from modules.esc_status import read_esc_data
+from modules.manual_control_setpoint import read_manual_control_setpoint_data
 from modules.system_power import read_system_power_data
+from modules.sensor_gps import read_sensor_gps_data
 from modules.timestamp_helper import get_first_gps_timestamp
+from modules.vehicle_air_data import read_vehicle_air_data_data
+from modules.vehicle_gps_position import read_vehicle_gps_position_data
+from modules.vehicle_local_position_setpoint import read_vehicle_local_position_setpoint_data
+from modules.vehicle_thrust_setpoint import read_vehicle_thrust_setpoint_data
 
 tmp_dirname = None
 ulog_filename = None
@@ -137,17 +145,40 @@ def main():
             ],
         )
 
-        # ESC
-        add_figs_to_dash(read_esc_data(tmp_dirname=tmp_dirname, ulog_filename=ulog_filename), app.layout)
-
-        # battery/power module
         add_figs_to_dash(read_battery_data(tmp_dirname=tmp_dirname, ulog_filename=ulog_filename), app.layout)
 
-        # system power
         add_figs_to_dash(read_system_power_data(tmp_dirname=tmp_dirname, ulog_filename=ulog_filename), app.layout)
 
-        # system power
+        add_figs_to_dash(read_esc_data(tmp_dirname=tmp_dirname, ulog_filename=ulog_filename), app.layout)
+
         add_figs_to_dash(read_actuator_motors_data(tmp_dirname=tmp_dirname, ulog_filename=ulog_filename), app.layout)
+
+        add_figs_to_dash(
+            read_manual_control_setpoint_data(tmp_dirname=tmp_dirname, ulog_filename=ulog_filename), app.layout
+        )
+
+        add_figs_to_dash(read_airspeed_data(tmp_dirname=tmp_dirname, ulog_filename=ulog_filename), app.layout)
+
+        add_figs_to_dash(
+            read_airspeed_validated_data(tmp_dirname=tmp_dirname, ulog_filename=ulog_filename), app.layout
+        )
+
+        # Data included in vehicle_gps_position (with even better accuracy)
+        # add_figs_to_dash(read_sensor_gps_data(tmp_dirname=tmp_dirname, ulog_filename=ulog_filename), app.layout)
+
+        add_figs_to_dash(
+            read_vehicle_gps_position_data(tmp_dirname=tmp_dirname, ulog_filename=ulog_filename), app.layout
+        )
+
+        add_figs_to_dash(read_vehicle_air_data_data(tmp_dirname=tmp_dirname, ulog_filename=ulog_filename), app.layout)
+
+        add_figs_to_dash(
+            read_vehicle_local_position_setpoint_data(tmp_dirname=tmp_dirname, ulog_filename=ulog_filename), app.layout
+        )
+
+        add_figs_to_dash(
+            read_vehicle_thrust_setpoint_data(tmp_dirname=tmp_dirname, ulog_filename=ulog_filename), app.layout
+        )
 
         app.run(debug=True)
 

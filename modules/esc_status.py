@@ -11,29 +11,19 @@ from modules.timestamp_helper import fix_timestamps
 def read_esc_data(tmp_dirname: str, ulog_filename: str):
     message_name = "esc_status"
 
-    esc_count = get_multi_id_num(tmp_dirname, message_name)
-    logging.info(f"Found {esc_count} ESC data sets")
+    dataset_count = get_multi_id_num(tmp_dirname, message_name)
+    logging.info(f"Found {dataset_count} {message_name} data sets")
+
+    timestamp_field = "timestamp"
 
     figs = []
 
-    for esc_num in range(esc_count):
+    for dataset_num in range(dataset_count):
         # read in csv
-        df = pd.read_csv(get_csv_file(tmp_dirname, ulog_filename, message_name, esc_num))
-        fix_timestamps(df)
+        df = pd.read_csv(get_csv_file(tmp_dirname, ulog_filename, message_name, dataset_num))
+        fix_timestamps(df, timestamp_field)
 
         motor_count = 4
-
-        # esc[0].esc_errorcount,
-        # esc[0].esc_rpm,
-        # esc[0].esc_voltage,
-        # esc[0].esc_current,
-        # esc[0].esc_temperature,
-        # esc[0].failures,
-        # esc[0].esc_address,
-        # esc[0].esc_cmdcount,
-        # esc[0].esc_state,
-        # esc[0].actuator_function,
-        # esc[0].esc_power,
 
         rows = 8
         subplot_titles = [
@@ -62,7 +52,7 @@ def read_esc_data(tmp_dirname: str, ulog_filename: str):
                 col=1,
                 row=1,
                 trace=go.Scatter(
-                    x=df["timestamp"],
+                    x=df[timestamp_field],
                     y=df[f"esc[{x}].esc_errorcount"],
                     mode="lines",
                     name=f"Motor {x+1}",
@@ -74,7 +64,7 @@ def read_esc_data(tmp_dirname: str, ulog_filename: str):
                 col=1,
                 row=2,
                 trace=go.Scatter(
-                    x=df["timestamp"],
+                    x=df[timestamp_field],
                     y=df[f"esc[{x}].esc_rpm"],
                     mode="lines",
                     name=f"Motor {x+1}",
@@ -85,7 +75,7 @@ def read_esc_data(tmp_dirname: str, ulog_filename: str):
             col=1,
             row=2,
             trace=go.Scatter(
-                x=df["timestamp"],
+                x=df[timestamp_field],
                 y=sum([df[f"esc[{x}].esc_rpm"] for x in range(motor_count)]),
                 mode="lines",
                 name=f"Total motor RPM",
@@ -101,7 +91,7 @@ def read_esc_data(tmp_dirname: str, ulog_filename: str):
                 col=1,
                 row=3,
                 trace=go.Scatter(
-                    x=df["timestamp"],
+                    x=df[timestamp_field],
                     y=df[f"esc[{x}].esc_temperature"],
                     mode="lines",
                     name=f"Motor {x+1}",
@@ -113,7 +103,7 @@ def read_esc_data(tmp_dirname: str, ulog_filename: str):
                 col=1,
                 row=4,
                 trace=go.Scatter(
-                    x=df["timestamp"],
+                    x=df[timestamp_field],
                     y=df[f"esc[{x}].esc_voltage"],
                     mode="lines",
                     name=f"Motor {x+1}",
@@ -125,7 +115,7 @@ def read_esc_data(tmp_dirname: str, ulog_filename: str):
                 col=1,
                 row=5,
                 trace=go.Scatter(
-                    x=df["timestamp"],
+                    x=df[timestamp_field],
                     y=df[f"esc[{x}].esc_current"],
                     mode="lines",
                     name=f"Motor {x+1}",
@@ -137,7 +127,7 @@ def read_esc_data(tmp_dirname: str, ulog_filename: str):
                 col=1,
                 row=6,
                 trace=go.Scatter(
-                    x=df["timestamp"],
+                    x=df[timestamp_field],
                     y=df[f"esc[{x}].failures"],
                     mode="lines",
                     name=f"Motor {x+1}",
@@ -149,7 +139,7 @@ def read_esc_data(tmp_dirname: str, ulog_filename: str):
                 col=1,
                 row=7,
                 trace=go.Scatter(
-                    x=df["timestamp"],
+                    x=df[timestamp_field],
                     y=df[f"esc[{x}].esc_state"],
                     mode="lines",
                     name=f"Motor {x+1}",
@@ -161,7 +151,7 @@ def read_esc_data(tmp_dirname: str, ulog_filename: str):
                 col=1,
                 row=8,
                 trace=go.Scatter(
-                    x=df["timestamp"],
+                    x=df[timestamp_field],
                     y=df[f"esc[{x}].esc_power"],
                     mode="lines",
                     name=f"Motor {x+1}",
@@ -172,7 +162,7 @@ def read_esc_data(tmp_dirname: str, ulog_filename: str):
 
         # show x axis labels in every subplot
         fig.update_layout(
-            title_text=f"ESC {esc_num}",
+            title_text=f"ESC {dataset_num}",
             autosize=True,
             xaxis_showticklabels=True,
             xaxis2_showticklabels=True,
