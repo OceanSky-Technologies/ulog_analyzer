@@ -6,6 +6,9 @@ import time
 
 import pandas as pd
 
+start_timestamp_us = 0
+logging_start_time_us = 0
+
 
 def timestamp_to_datetime(timestamp_us: int):
     return datetime.fromtimestamp(timestamp_us / 1000000, UTC).strftime("%Y-%m-%d %H:%M:%S")
@@ -27,6 +30,10 @@ def get_first_gps_timestamp(ulog: ULog):
 
 def fix_timestamps(df, timestamp_field):
     """This function adjusts timestamps so they are in the local timezone."""
+
+    if start_timestamp_us == 0 or logging_start_time_us == 0:
+        logging.warning("GPS timestamps not found, can't fix timestamp offsets.")
+        return
 
     # used to transform everything into local timezone
     utc_offset_us = int(time.timezone * 1000000)

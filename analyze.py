@@ -30,8 +30,6 @@ from modules.vehicle_thrust_setpoint import read_vehicle_thrust_setpoint_data
 
 tmp_dirname = None
 ulog_filename = None
-start_timestamp_us = 0
-logging_start_time_us = 0
 
 subplot_height = 600
 
