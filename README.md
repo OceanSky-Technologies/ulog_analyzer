@@ -15,6 +15,10 @@ python -m venv ./.venv
 source ./.venv/bin/activate
 
 # Windows
+# first allow virtual environments: start a terminal with admin permissions and run
+Set-ExecutionPolicy Unrestricted -Force
+
+# afterwards you can launch the venv with
 .\.venv\Scripts\activate
 ```
 
