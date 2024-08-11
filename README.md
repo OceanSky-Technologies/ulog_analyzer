@@ -9,7 +9,7 @@ Ulog is the default log file format used by PX4. For infos see [this page](https
 Set up a virtual environment and enter it:
 
 ```bash
-python3 -m venv ./.venv
+python -m venv ./.venv
 
 # Linux
 source ./.venv/bin/activate
@@ -21,21 +21,21 @@ source ./.venv/bin/activate
 Install necessary libraries inside this venv:
 
 ```bash
-python3 -m pip install -r requirements.txt
+python -m pip install -r requirements.txt
 ```
 
 Run the analyzer script with
 
 ```bash
-python3 ./analyze.py PATH_TO_ULG_FILE
+python ./analyze.py PATH_TO_ULG_FILE
 ```
 
 Then open the URL `http://127.0.0.1:8050/` in a browser.
 
-If you require more python packages inside this venv, you can add them using `pip3 install ...` and save them to the venv using
+If you require more python packages inside this venv, you can add them using `pip install ...` and save them to the venv using
 
 ```bash
-pip3 freeze > requirements.txt
+pip freeze > requirements.txt
 ``````
 
 You can leave the venv any time using
