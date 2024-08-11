@@ -3,7 +3,7 @@ import os
 
 def get_multi_id_num(tmp_dirname: str, message_name: str):
     files = [
-        name for name in os.listdir(tmp_dirname) if os.path.isfile(tmp_dirname + "/" + name) and "esc_status" in name
+        name for name in os.listdir(tmp_dirname) if os.path.isfile(tmp_dirname + "/" + name) and message_name in name
     ]
 
     return len(files)
