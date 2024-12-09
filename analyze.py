@@ -27,6 +27,7 @@ from modules.vehicle_air_data import read_vehicle_air_data_data
 from modules.vehicle_gps_position import read_vehicle_gps_position_data
 from modules.vehicle_local_position_setpoint import read_vehicle_local_position_setpoint_data
 from modules.vehicle_thrust_setpoint import read_vehicle_thrust_setpoint_data
+from modules.sensor_combined import read_sensor_combined_data
 
 tmp_dirname = None
 ulog_filename = None
@@ -151,9 +152,10 @@ def main():
 
         add_figs_to_dash(read_actuator_motors_data(tmp_dirname=tmp_dirname, ulog_filename=ulog_filename), app.layout)
 
-        add_figs_to_dash(
-            read_manual_control_setpoint_data(tmp_dirname=tmp_dirname, ulog_filename=ulog_filename), app.layout
-        )
+        # present in flight review
+        # add_figs_to_dash(
+        #    read_manual_control_setpoint_data(tmp_dirname=tmp_dirname, ulog_filename=ulog_filename), app.layout
+        # )
 
         add_figs_to_dash(read_airspeed_data(tmp_dirname=tmp_dirname, ulog_filename=ulog_filename), app.layout)
 
@@ -168,15 +170,20 @@ def main():
             read_vehicle_gps_position_data(tmp_dirname=tmp_dirname, ulog_filename=ulog_filename), app.layout
         )
 
-        add_figs_to_dash(read_vehicle_air_data_data(tmp_dirname=tmp_dirname, ulog_filename=ulog_filename), app.layout)
+        # present in flight review
+        # add_figs_to_dash(read_vehicle_air_data_data(tmp_dirname=tmp_dirname, ulog_filename=ulog_filename), app.layout)
 
-        add_figs_to_dash(
-            read_vehicle_local_position_setpoint_data(tmp_dirname=tmp_dirname, ulog_filename=ulog_filename), app.layout
-        )
+        # present in flight review
+        # add_figs_to_dash(
+        #     read_vehicle_local_position_setpoint_data(tmp_dirname=tmp_dirname, ulog_filename=ulog_filename), app.layout
+        # )
 
-        add_figs_to_dash(
-            read_vehicle_thrust_setpoint_data(tmp_dirname=tmp_dirname, ulog_filename=ulog_filename), app.layout
-        )
+        # present in flight review
+        # add_figs_to_dash(
+        #     read_vehicle_thrust_setpoint_data(tmp_dirname=tmp_dirname, ulog_filename=ulog_filename), app.layout
+        # )
+
+        add_figs_to_dash(read_sensor_combined_data(tmp_dirname=tmp_dirname, ulog_filename=ulog_filename), app.layout)
 
         app.run(debug=True)
 
