@@ -23,11 +23,8 @@ def read_vehicle_gps_position_data(tmp_dirname: str, ulog_filename: str):
         df = pd.read_csv(get_csv_file(tmp_dirname, ulog_filename, message_name, dataset_num))
         fix_timestamps(df, timestamp_field)
 
-        rows = 2
-        subplot_titles = [
-            "Altitude",
-            "Velocity",
-        ]
+        rows = 3
+        subplot_titles = ["Altitude", "Velocity", "Raw data"]
         if len(subplot_titles) != rows:
             raise Exception("Number of subplots is wrong")
 
@@ -37,6 +34,7 @@ def read_vehicle_gps_position_data(tmp_dirname: str, ulog_filename: str):
             vertical_spacing=0.075,
             shared_xaxes=True,
             subplot_titles=subplot_titles,
+            specs=[[{}], [{}], [{"type": "table"}]],  # Specify table type for the last row
         )
 
         # Altitude
@@ -108,6 +106,43 @@ def read_vehicle_gps_position_data(tmp_dirname: str, ulog_filename: str):
         )
 
         # TODO: add more fields
+
+        # Data Table
+        columns = [
+            "timestamp",
+            "latitude_deg",
+            "longitude_deg",
+            "altitude_msl_m",
+            "altitude_ellipsoid_m",
+            "time_utc_usec",
+            "eph",
+            "epv",
+            "hdop",
+            "vdop",
+            "noise_per_ms",
+            "jamming_indicator",
+            "vel_m_s",
+            "heading",
+            "heading_accuracy",
+            "fix_type",
+            "jamming_state",
+            "satellites_used",
+        ]
+        fig.add_trace(
+            go.Table(
+                header=dict(
+                    values=list(columns), fill_color="lightgrey", align="center", font=dict(size=12, color="black")
+                ),
+                cells=dict(
+                    values=[df[col] for col in columns],
+                    fill_color="white",
+                    align="center",
+                    font=dict(size=10, color="black"),
+                ),
+            ),
+            row=3,
+            col=1,
+        )
 
         format_figure(fig)
 
