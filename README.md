@@ -1,8 +1,8 @@
 # ulog_analyzer
 
-This repo provides tooling to visualize and analyze ulog files.
+This repo provides additional tooling to visualize and analyze ulog files that extends https://logs.px4.io/.
 
-Ulog is the default log file format used by PX4. For infos see [this page](https://docs.px4.io/main/en/dev_log/ulog_file_format.html).
+Ulog is the log file format used by PX4. For infos see [this page](https://docs.px4.io/main/en/dev_log/ulog_file_format.html).
 
 ## Usage
 
